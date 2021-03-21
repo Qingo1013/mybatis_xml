@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!--dtd是xml文件的约束，不规范就会报错，与spring中xsd类似-->
+<!--
+
+configuration（配置）
+properties（属性）
+settings（设置）
+typeAliases（类型别名）
+typeHandlers（类型处理器）
+objectFactory（对象工厂）
+plugins（插件）
+environments（环境配置）
+environment（环境变量）
+transactionManager（事务管理器）
+dataSource（数据源）
+databaseIdProvider（数据库厂商标识）
+mappers（映射器）
+
+-->
+
+<!--
+    就是!DOCTYPE后面对应的根节点
+-->
+<configuration>
+    <!-- Setup the transaction manager and data source that are
+         appropriate for your environment
+    -->
+    <!--
+        配置外部属性资源文件，通过${}进行引用;也可以在内部声明属性
+        生成资源文件放在根路径
+        resource:项目路径下的资源
+        url：磁盘上的资源
+    -->
+    <properties resource="db.properties">
+        <!--相当于在内部 声明一个变量，在下面被引用-->
+        <!--<property name="mysql.username" value="root"/>-->
+    </properties>
+    <!--mybatis设置选项，可以改变mybatis运行时行为-->
+    <settings>
+        <!--name属性
+            useColumnLabel：是否可以用列别名，默认是允许，设置别名后，会根据SQL的别名和属性名进行映射
+            useGeneratedKeys：主键是否自动增长
+            autoMappingUnknownColumnBehavior：数据库字段名与pojo属性名自动映射不匹配时，进行的动作
+                默认：NONE: 不做任何反应
+                WARNING: 输出警告日志（'org.apache.ibatis.session.AutoMappingUnknownColumnBehavior' 的日志等级必须设置为 WARN
+                FAILING: 映射失败 (抛出 SqlSessionException)
+            defaultExecutorType：配置默认的执行器。
+                （默认）SIMPLE 就是普通的执行器，每次执行都会预编译；
+                REUSE 执行器会重用预处理语句（PreparedStatement）；
+                BATCH 执行器不仅重用语句还会执行批量更新。
+                也可以在openSession的参数中设置
+            defaultStatementTimeout：设置查询超时时间，它决定数据库驱动等待数据库响应的秒数。
+            mapUnderscoreToCamelCase：是否开启驼峰命名自动映射，即从经典数据库列名 A_COLUMN 映射到经典 Java 属性名 aColumn。
+                即数据库蛇形命名映射为java驼峰命名
+                qin_qing_ao 蛇形 - - >  qinQingAo 驼峰
+            jdbcTypeForNull：当没有为参数指定特定的 JDBC 类型时，空值的默认 JDBC 类型。 某些数据库驱动需要指定列的 JDBC 类型，多数情况直接用一般类型即可，比如 NULL、VARCHAR 或 OTHER。
+                    当往数据库插入数据时，某个数据值为null时，映射到数据库的类型
+                    默认：OTHER mysql是可以识别出OTHER类型的
+                         NULL   如果是ORACLE一定要设置为NULL，因为ORACLE不能识别OTHER类型
+                         VARCHAR    当属性值为空时，为数据库设置一个空字符串
+            logImpl：指定 MyBatis 所用日志的具体实现，未指定时将自动查找。
+                    加入mybatis中实现了多个日志框架，可以用logImpl指定使用哪个日志框架
+                    如果使用了SLF4J，可以不用设置该选项，因为SLF4J本身就是负责选择哪种日志实现框架的
+                    如果没有使用SLF4J的情况下，使用了多个日志实现框架，最好设置需要使用的日志框架
+        -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+    </settings>
+
+    <!--
+        类型别名可为 Java 类型设置一个缩写名字。 它仅用于 XML 配置，意在降低冗余的全限定类名书写。
+        通常重命名只重命名pojo包下面的类
+    -->
+    <typeAliases>
+        <!--
+            根据包名设置包里面所有类的别名：会将类的名字设置别名，并且忽略大小写
+            还可以在包里的类中使用@Alias()注解为类单独设置个性别名（那么默认地以类的名字的别名便会失效）
+            除了可以设置自定义的类的别名以外，mybatis还内置了很多常见的类型别名
+            常见的 Java 类型内建的类型别名。它们都是不区分大小写的，注意，为了应对原始类型的命名重复，采取了特殊的命名风格
+        -->
+        <package name="cn.qqa.pojo"/>
+    </typeAliases>
+
+
+
+
+
+    <!-- mybatis-config.xml -->
+    <!--
+        插件：可以把他理解成mybatis的拦截器，可以拦截四大对象
+        可以拦截sql，给sql加一些公共的功能
+        自定义插件
+        <plugins>
+            <plugin interceptor="org.mybatis.example.ExamplePlugin">
+                <property name="someProperty" value="100"/>
+            </plugin>
+        </plugins>
+    -->
+
+
+
+    <!--
+        <environments>：复数可以多个环境
+        default：默认的数据库类型
+    -->
+    <environments default="development">
+        <!--
+            environment 配置数据库环境 id 指定当前数据库环境的唯一表示 ，会被default属性设置
+            可以设置多个：比如开发库、测试库、上线正式库
+        -->
+        <environment id="development">
+            <!--事务管理器 类型
+                type = JDBC 使用jdbc的事务管理（提交和回滚）
+                        MANAGED 不适用事务
+            -->
+        <transactionManager type="JDBC"/>
+            <!--
+                数据源
+                type 指定连接池
+                    POLLED 指定使用mybatis的连接池
+                    UNPOOLED 不使用连接池
+                    JNDI JNDI连接池 可以再Tomcat中使用
+                相应的修改要改一下POOLED的实现类
+                集成SSM：gradle连接池
+            -->
+            <dataSource type="POOLED">
+                <property name="driver" value="${mysql.driver}"/>
+                <property name="url" value="${mysql.url}"/>
+                <property name="username" value="${mysql.username}"/>
+                <property name="password" value="${mysql.password}"/>
+            </dataSource>
+        </environment>
+
+        <environment id="test">
+            <!--事务管理器 类型
+                type = JDBC 使用jdbc的事务管理（提交和回滚）
+                        MANAGED 不适用事务
+            -->
+            <transactionManager type="JDBC"/>
+            <!--
+                数据源
+                type 指定连接池
+                    POLLED 指定使用mybatis的连接池
+                    UNPOOLED 不使用连接池
+                    JNDI JNDI连接池 可以再Tomcat中使用
+                相应的修改要改一下POOLED的实现类
+                集成SSM：gradle连接池
+            -->
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://localhost:3306/shop?serverTimezone=UTC"/>
+                <property name="username" value="root"/>
+                <property name="password" value="521.james"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+
+    <!--数据库厂商标识（databaseIdProvider）：mybatis提供用于跨数据平台，根据不同的数据库调用不同的sql-->
+    <!--
+        mybatis基于sql语句驱动
+        type="DB_VENDOR" 利用数据库的厂商名称来区分
+        步骤：
+            1.为需要跨数据库设置不同的厂商标识
+            2.编写不同的sql语句，databaseId必须等于厂商的value
+    -->
+
+    <databaseIdProvider type="DB_VENDOR">
+        <property name="MySQL" value="mysql"/>
+        <property name="Oracle" value="oracle" />
+    </databaseIdProvider>
+    <!--设置映射器-->
+    <!--
+      4种映射方式
+      1.设置<mapper resource 设置一个xxxMapper.xml 适用以前staementID进行操作
+      2.设置<mapper class 设置一个xxxMapper接口 适用接口绑定的方式
+      3.设置<mapper url  适用磁盘绝对路径（基本不用）
+      4.设置<package      根据包设置包下面的所有xxxMapper接口，这种方式适用接口绑定的方式和注解
+    -->
+    <mappers>
+        <!-- XML mapper files should be listed here -->
+        <!--<mapper resource="cn/qqa/mapper/EmpMapper.xml" />-->
+        <!--<mapper class="cn.qqa.mapper.EmpMapper"/>-->
+        <package name="cn.qqa.mapper"/>
+    </mappers>
+
+</configuration>

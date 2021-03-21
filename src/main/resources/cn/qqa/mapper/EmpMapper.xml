@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--dtd是xml文件的约束，不规范就会报错，与spring中xsd类似-->
+
+<!--<mapper>只用一个属性就是命名空间，一般情况下一个mapper映射文件对应一个不同的命名空间，利于管理和维护
+书写：默认情况下可以随意书写，但是如果使用接口绑定的形式就必须要书写对应的接口的完整限定名
+
+-->
+
+<!--<mapper namespace="cn.qqa.pojo.EmpMapper">-->
+<mapper namespace="cn.qqa.mapper.EmpMapper">
+    <!--根据id查询Emp对应实体（数据库字段）-->
+    <!--
+        resultSetType:jdbc取出结果集的数据，需要调用next方法，一般会释放上一条，当我们还需要上一条或者首条时，可以设置该属性
+        resultSets:适用于多结果集（存储过程）
+
+    -->
+    <select id="selectEmp" resultType="emp" >
+
+      SELECT * FROM EMP WHERE id = #{id}
+    </select>
+
+    <!--
+        id:在命名空间中唯一的标识符，可以被用来引用这条语句。
+            注意：如果是接口绑定的方式，一定要保证接口方法名与id相同
+            同一个命名空间只能有一个唯一的id，除非有不同的databaseId
+        parameterType:将会传入这条语句的参数的类全限定名或别名。这个属性是可选的，
+            因为 MyBatis 可以通过类型处理器（TypeHandler）推断出具体传入语句的参数，
+            默认值为未设置（unset）。
+            用途：mybatis会根据id找到对应的方法以及参数，所以一般不用
+        statementType：
+            STATEMENT：jdbc Statement 不支持参数预解析
+            PREPARED：jdbc PreparedStatement （支持参数预解析【sql语句中含有？】，默认的，#{}预解析为？）
+            CALLABLE：jdbc CallableStatement 执行存储过程【不利于数据库维护与移植】
+            默认值：PREPARED。
+            用途：设置当前的statement（因为mybatis是对jdbc的封装）
+        useGeneratedKeys：（仅适用于 insert 和 update）这会令 MyBatis 使用 JDBC 的
+            getGeneratedKeys 方法来取出由数据库内部生成的主键
+            （比如：像 MySQL 和 SQL Server 这样的关系型数据库管理系统的自动递增字段），
+            默认值：false。
+        keyProperty：（仅适用于 insert 和 update）指定能够唯一识别对象的属性，
+            MyBatis 会使用 getGeneratedKeys 的返回值或 insert 语句的 selectKey 子元素设置它的值，
+            默认值：未设置（unset）。
+            如果生成列不止一个，可以用逗号分隔多个属性名称。
+        用途（前提：数据库支持自动增长的功能）：与useGeneratedKeys配合使用,也就是将自动增长的主键赋值到指定属性
+        应用场景：当插入主表并且要插入从表时
+        用途：获取更新后自动增长的主键  useGeneratedKeys="true" keyProperty="id"
+        keyColumn：（仅适用于 insert 和 update）设置生成键值在表中的列名，在某些数据库（像 PostgreSQL）中，
+            当主键列不是表中的第一列的时候，是必须设置的。如果生成列不止一个，可以用逗号分隔多个属性名称。
+            有可能存在组合主键，指定获取哪一个字段
+        databaseId：如果配置了数据库厂商标识（databaseIdProvider），
+            MyBatis 会加载所有不带 databaseId 或匹配当前 databaseId 的语句；
+            如果带和不带的语句都有，则不带的会被忽略。
+    -->
+    <insert id="insertEmp" useGeneratedKeys="true" keyProperty="id"  >
+        <!--
+            如果数据库不支持自动增长的功能：
+            selectKey元素可以在增删改之前或之后运行
+            针对于ORACLE等不支持自动增长的情况
+            order: BEFORE 或 AFTER 在增删改之前或之后运行
+            keyProperty：与上面相同，指定能够唯一识别对象的属性，将当前查询结果放到哪个pojo属性中
+            resultType：返回值类型
+            statementType:这会让 MyBatis 分别使用 Statement（一句一句执行），PreparedStatement（预编译） 或 CallableStatement(存储过程)，默认值：PREPARED。
+        -->
+
+        <!--相当于嵌套查询，所以要有resultType-->
+        <!--
+            <selectKey order="BEFORE" keyProperty="id" resultType="int">
+                SELECT MAX(id)+1 FROM EMP
+            </selectKey>
+        -->
+        INSERT INTO
+        EMP(username)
+        VALUES ( #{username});
+    </insert>
+    <update id="updateEmp">
+        update emp
+        set username = #{username}
+        where id = #{id}
+    </update>
+    <delete id="deleteEmp">
+        delete
+        from Emp
+        where id=#{id}
+    </delete>
+
+</mapper>
